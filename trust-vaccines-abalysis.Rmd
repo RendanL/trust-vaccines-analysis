@@ -10,6 +10,8 @@ library(dplyr)
 library(readr)
 library(ggplot2)
 
+options(scipen = 999)
+
 ed_levels <- c("Primary school",
                "Secondary school (age under 15 years old)",
                "GNVQ / GSVQ / GCSE/ SCE standard.",
@@ -108,4 +110,51 @@ d_trustvac_likert_summary %>%
   ) + 
   geom_point() +
   coord_flip()
+```
+
+```{r}
+d_trustvac <- d_trustvac %>%
+  mutate(
+    Female = gender_nb == 'Female',
+    Vaccines_safe = vacsafe_coded >3
+      )
+
+d_trustvac %>%
+  xtabs(~ Female + Vaccines_safe, .)
+
+d_trustvac %>%
+  group_by(Female) %>%
+  summarise(
+    n = n(), 
+    Agree = sum(Vaccines_safe, na.rm = TRUE)) %>%
+      mutate(
+    Percentage = round(Agree / n * 100)
+  )
+
+chisq.test(
+  d_trustvac$Female,
+  d_trustvac$Vaccines_safe
+)
+
+fisher.test(
+  d_trustvac$Female,
+  d_trustvac$Vaccines_safe
+)
+```
+
+```{r}
+d_trustvac %>%
+  wilcox.test(
+    vacsafe_coded ~ Female,
+    data = .
+  )
+```
+
+```{r}
+d_trustvac %>%
+  t.test(
+    age ~ Vaccines_safe,
+    var.equal = FALSE,
+    data = .)
+  )
 ```
